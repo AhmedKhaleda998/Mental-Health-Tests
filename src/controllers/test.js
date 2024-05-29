@@ -1,3 +1,5 @@
+const nodemailer = require('nodemailer');
+
 const { validationResult } = require('express-validator');
 
 const User = require('../models/user');
@@ -15,10 +17,11 @@ exports.takeTest = async (req, res) => {
         const user = await User.findById(req.user._id);
         user.tests.push({ category, score, questions });
         await user.save();
+        await sendEmail(user.name.first, user.email, category, score);
         res.json({ message: 'Test submitted successfully' });
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error });
+        res.status(500).json({ error: error.message });
     }
 };
 
@@ -31,7 +34,7 @@ exports.getTests = async (req, res) => {
         res.json({ message: 'User tests', tests: user.tests });
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error });
+        res.status(500).json({ error: error.message });
     }
 };
 
@@ -52,6 +55,46 @@ exports.predict = async (req, res) => {
         res.json({ message: 'Prediction', result });
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error });
+        res.status(500).json({ error: error.message });
     }
+};
+
+const sendEmail = async (name, email, category, score) => {
+    const transporter = nodemailer.createTransport({
+        service: 'Gmail',
+        auth: {
+            user: process.env.EMAIL_ADDRESS,
+            pass: process.env.EMAIL_PASSWORD,
+        },
+    });
+    const mailOptions = {
+        from: process.env.EMAIL_ADDRESS,
+        to: email,
+        subject: 'Mental Health Test Results',
+        html: emailHTML(name, category, score),
+    };
+    await transporter.sendMail(mailOptions);
+};
+
+const emailHTML = (name, category, score) => {
+    return `<!DOCTYPE html>
+        <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <title>Mental Health Test Results</title>
+            </head> 
+            <body>
+                <p>Dear ${name},</p>
+
+                <p>Thank you for taking the test!</p>
+
+                <p> Your score for the ${category} test is ${score}.<br>
+                We will review your results shortly and be back as soon as possible.</p>
+                
+                <p>Best regards,<br>
+                    Mental Health Tests<br>
+                </p>
+            </body>
+        </html>
+        `;
 };

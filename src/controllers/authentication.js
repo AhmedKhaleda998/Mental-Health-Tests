@@ -36,7 +36,7 @@ exports.login = async (req, res) => {
         });
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error });
+        res.status(500).json({ error: error.message });
     }
 };
 
@@ -67,7 +67,7 @@ exports.register = async (req, res) => {
         res.json({ message: 'User registered successfully' });
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error });
+        res.status(500).json({ error: error.message });
     }
 };
 
@@ -78,6 +78,6 @@ exports.logout = async (req, res) => {
         res.json({ message: 'User logged out successfully' });
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error });
+        res.status(500).json({ error: error.message });
     }
 };
