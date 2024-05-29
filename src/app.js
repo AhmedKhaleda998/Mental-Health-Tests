@@ -9,6 +9,7 @@ const { connection } = require('./configurations/database');
 
 const authenticationRoutes = require('./routes/authentication');
 const testRoutes = require('./routes/test');
+const contactRoutes = require('./routes/contact');
 const error = require('./controllers/error');
 
 const app = express();
@@ -24,6 +25,7 @@ app.get('/', (req, res) => {
 
 app.use('/auth', authenticationRoutes);
 app.use('/tests', testRoutes);
+app.use('/contact', contactRoutes);
 app.use(error.notFound);
 
 connection().then(() => {

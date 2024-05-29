@@ -1,7 +1,13 @@
+const { validationResult } = require('express-validator');
+
 const User = require('../models/user');
 
 exports.takeTest = async (req, res) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(422).json({ error: errors.array()[0].msg });
+        }
         const { category, score, questions } = req.body;
         if (!req.user._id) {
             return res.status(404).json({ error: 'User not found!' });
