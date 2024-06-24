@@ -1,4 +1,6 @@
 const nodemailer = require('nodemailer');
+const Sentiment = require('sentiment');
+const sentiment = new Sentiment();
 
 const { validationResult } = require('express-validator');
 
@@ -51,7 +53,40 @@ exports.predict = async (req, res) => {
             redirect: "follow"
         };
         const response = await fetch(process.env.MODEL_URL, requestOptions)
-        const result = await response.json();
+        let result = await response.json();
+        if (result.error) {
+            const sentimentResult = sentiment.analyze(text);
+            if (sentimentResult.score > 0) {
+                if (sentimentResult.score >= 3) {
+                    result = [{
+                        label: 'You seem to be very positive, keep it up!',
+                        score: 1
+                    }];
+                } else {
+                    result = [{
+                        label: 'You seem to be good, keep it up!',
+                        score: 1
+                    }]
+                }
+            } else if (sentimentResult.score < 0) {
+                if (sentimentResult.score <= -2) {
+                    result = [{
+                        label: 'Seems like you have severe depression, please contact help ASAP on +202-555-0123, or someone will reach out',
+                        score: 1
+                    }];
+                } else {
+                    result = [{
+                        label: 'Seems like you have depression, please contact help on +202-555-0123, or someone will reach out',
+                        score: 1
+                    }];
+                }
+            } else {
+                result = [{
+                    label: 'You seem to be fine, also if you need help, you can reach out to us on +202-555-0123',
+                    score: 1
+                }];
+            }
+        }
         res.json({ message: 'Prediction', result });
     } catch (error) {
         console.log(error);
